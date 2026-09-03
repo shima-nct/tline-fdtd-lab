@@ -36,3 +36,11 @@ python3 -m http.server 8000 -d dist
 ```bash
 node tests/fdtd-core.test.mjs
 ```
+
+## License
+
+This project is licensed under the MIT License. See [LICENSE](LICENSE).
+
+## Attribution
+
+Assisted-by: OpenAI Codex
