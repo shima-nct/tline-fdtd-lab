@@ -2,7 +2,7 @@
 
 伝送線路を微小セルに分割し、電圧と電流をYee格子上で交互に更新するブラウザ用シミュレーターです。
 
-公開版: https://tline-fdtd-lab.shima207289.chatgpt.site
+公開版: https://shima-nct.github.io/tline-fdtd-lab/
 
 ## 主な機能
 
