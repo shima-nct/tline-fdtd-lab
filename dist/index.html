@@ -1,0 +1,255 @@
+<!doctype html>
+<html lang="ja">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="微小区間の電圧・電流を交互に更新し、パルス伝搬・反射・定在波を観察する1次元FDTD伝送線路シミュレーター">
+  <title>1次元FDTD 伝送線路ラボ</title>
+  <link rel="stylesheet" href="./styles.css">
+</head>
+<body>
+  <header class="topbar">
+    <div>
+      <p class="eyebrow">TRANSMISSION LINE LAB</p>
+      <h1>1次元FDTD 伝送線路ラボ</h1>
+    </div>
+    <div class="transport" aria-label="シミュレーション操作">
+      <button id="runButton" class="primary" type="button">▶ 実行</button>
+      <button id="halfButton" type="button" aria-label="2分の1ステップ進める。長押しで連続実行" title="長押しすると連続で進みます">½ステップ</button>
+      <button id="resetButton" type="button">↺ リセット</button>
+    </div>
+  </header>
+
+  <main class="app-shell">
+    <aside class="controls" aria-label="計算条件">
+      <section class="panel presets">
+        <div class="panel-heading">
+          <h2>クイック選択</h2>
+          <span class="chip">FDTD</span>
+        </div>
+        <div class="choice-group">
+          <p>波形</p>
+          <div class="preset-grid" aria-label="波形のクイック選択">
+            <button data-wave="pulse" class="selected" type="button">パルス</button>
+            <button data-wave="sine" type="button">正弦波</button>
+            <button data-wave="step" type="button">ステップ</button>
+            <button data-wave="gaussian" type="button">ガウス波</button>
+          </div>
+        </div>
+        <div class="choice-group">
+          <p>終端</p>
+          <div class="preset-grid load-grid" aria-label="終端のクイック選択">
+            <button data-load="matched" type="button">整合</button>
+            <button data-load="open" class="selected" type="button">開放</button>
+            <button data-load="short" type="button">短絡</button>
+          </div>
+        </div>
+      </section>
+
+      <section class="panel">
+        <h2>励振と終端</h2>
+        <div class="control-grid">
+          <label>波形
+            <select id="sourceMode">
+              <option value="pulse">平滑パルス</option>
+              <option value="step">ステップ</option>
+              <option value="sine">正弦波</option>
+              <option value="gaussian">ガウス波</option>
+            </select>
+          </label>
+          <label>開放電圧 <span class="unit">V</span>
+            <input id="amplitude" type="number" min="0.01" max="100" step="0.1" value="1">
+          </label>
+          <label id="widthField">幅 <span class="unit">ns</span>
+            <input id="pulseWidth" type="number" min="0.1" max="10000" step="1" value="20">
+          </label>
+          <label id="frequencyField" hidden>周波数 <span class="unit">MHz</span>
+            <input id="frequency" type="number" min="0.001" max="10000" step="1" value="20">
+          </label>
+          <label>信号源抵抗 R<sub>s</sub> <span class="unit">Ω</span>
+            <input id="sourceResistance" type="number" min="0" max="1000000" step="1" value="50">
+          </label>
+          <label>終端
+            <select id="loadMode">
+              <option value="open">開放</option>
+              <option value="matched">整合</option>
+              <option value="short">短絡</option>
+              <option value="custom">抵抗指定</option>
+            </select>
+          </label>
+          <label id="loadResistanceField" hidden>終端抵抗 R<sub>L</sub> <span class="unit">Ω</span>
+            <input id="loadResistance" type="number" min="0.001" max="1000000000" step="1" value="100">
+          </label>
+        </div>
+      </section>
+
+      <section class="panel">
+        <h2>線路と離散化</h2>
+        <div class="control-grid">
+          <label>線路長 <span class="unit">m</span>
+            <input id="lineLength" type="number" min="0.01" max="100000" step="1" value="10">
+          </label>
+          <label>セル数 N
+            <input id="cells" type="number" min="20" max="600" step="10" value="240">
+          </label>
+          <label>R′ <span class="unit">Ω/m</span>
+            <input id="resistance" type="number" min="0" max="1000000" step="0.01" value="0">
+          </label>
+          <label>L′ <span class="unit">nH/m</span>
+            <input id="inductance" type="number" min="0.001" max="1000000000" step="10" value="250">
+          </label>
+          <label>G′ <span class="unit">µS/m</span>
+            <input id="conductance" type="number" min="0" max="1000000000" step="0.1" value="0">
+          </label>
+          <label>C′ <span class="unit">pF/m</span>
+            <input id="capacitance" type="number" min="0.001" max="1000000000000" step="10" value="100">
+          </label>
+          <label>Courant 数 S
+            <input id="courant" type="number" min="0.05" max="0.999" step="0.01" value="0.95">
+          </label>
+          <label>描画速度 <span class="unit"><output id="speedOutput">4</output> step/frame</span>
+            <input id="speed" type="range" min="1" max="24" step="1" value="4">
+          </label>
+        </div>
+      </section>
+
+      <section class="panel compact">
+        <h2>表示</h2>
+        <div class="check-grid">
+          <label><input id="showTotal" type="checkbox" checked> 合成電圧 V</label>
+          <label><input id="showForward" type="checkbox" checked> 順方向 V⁺</label>
+          <label><input id="showBackward" type="checkbox" checked> 逆方向 V⁻</label>
+          <label><input id="showEnvelope" type="checkbox"> |V| 最大包絡</label>
+          <label><input id="showCurrentTotal" type="checkbox" checked> 合成電流 I</label>
+          <label><input id="showCurrentForward" type="checkbox" checked> 前進波 I⁺</label>
+          <label><input id="showCurrentBackward" type="checkbox" checked> 後進波 I⁻</label>
+        </div>
+        <div class="hold-control">
+          <label>包絡線ホールド時間 <span class="unit">ns</span>
+            <input id="envelopeHoldTime" type="number" min="0.001" max="1000000" step="10" value="200">
+          </label>
+          <p>直近の指定時間における最大 |V| を保持します。変更時は包絡線の履歴だけを取り直します。</p>
+        </div>
+      </section>
+    </aside>
+
+    <div class="workspace">
+      <section class="status-strip" aria-label="計算状態">
+        <div><span>時刻</span><strong id="timeMetric">0.000 ns</strong></div>
+        <div><span>Δx</span><strong id="dxMetric">—</strong></div>
+        <div><span>Δt</span><strong id="dtMetric">—</strong></div>
+        <div><span>Z₀</span><strong id="z0Metric">—</strong></div>
+        <div><span>伝搬速度</span><strong id="velocityMetric">—</strong></div>
+        <div><span>片道遅延</span><strong id="delayMetric">—</strong></div>
+      </section>
+
+      <section id="warning" class="warning" role="alert" hidden></section>
+
+      <section class="panel chart-panel">
+        <div class="chart-heading">
+          <div>
+            <p class="eyebrow">SPATIAL FIELD</p>
+            <h2>線路上の電圧</h2>
+          </div>
+          <div class="legend" aria-label="電圧グラフ凡例">
+            <span><i class="swatch total"></i>V</span>
+            <span><i class="swatch forward"></i>V⁺</span>
+            <span><i class="swatch backward"></i>V⁻</span>
+            <span><i class="swatch envelope"></i>包絡</span>
+          </div>
+        </div>
+        <canvas id="voltageCanvas" aria-label="位置に対する電圧"></canvas>
+      </section>
+
+      <section class="panel chart-panel">
+        <div class="chart-heading">
+          <div>
+            <p class="eyebrow">STAGGERED FIELD</p>
+            <h2>線路上の電流</h2>
+          </div>
+          <div class="legend" aria-label="電流グラフ凡例">
+            <span><i class="swatch current"></i>I</span>
+            <span><i class="swatch current-forward"></i>I⁺</span>
+            <span><i class="swatch current-backward"></i>I⁻</span>
+            <span class="legend-note">（半セル位置）</span>
+          </div>
+        </div>
+        <canvas id="currentCanvas" aria-label="位置に対する電流"></canvas>
+      </section>
+
+      <section class="panel chart-panel history-panel">
+        <div class="chart-heading">
+          <div>
+            <p class="eyebrow">FIXED PROBES</p>
+            <h2>固定点の電圧履歴</h2>
+          </div>
+          <div class="legend">
+            <span><i class="swatch probe-source"></i>x=0</span>
+            <span><i class="swatch probe-mid"></i>x=ℓ/2</span>
+            <span><i class="swatch probe-load"></i>x=ℓ</span>
+          </div>
+        </div>
+        <canvas id="historyCanvas" aria-label="時間に対する3地点の電圧"></canvas>
+      </section>
+
+      <section class="lower-grid">
+        <article class="panel process-panel">
+          <div class="panel-heading">
+            <div>
+              <p class="eyebrow">LEAPFROG UPDATE</p>
+              <h2>更新過程</h2>
+            </div>
+            <span id="phaseBadge" class="phase-badge">次：I 更新</span>
+          </div>
+          <div class="process-steps">
+            <div id="currentStep" class="process-step active">
+              <span>1</span>
+              <div><strong>電流を半時刻進める</strong><code>Iⱼⁿ⁺¹ᐟ² ← Iⱼⁿ⁻¹ᐟ² − bᵢ(Vⱼ₊₁ⁿ−Vⱼⁿ)</code></div>
+            </div>
+            <div id="voltageStep" class="process-step">
+              <span>2</span>
+              <div><strong>電圧を1時刻進める</strong><code>Vⱼⁿ⁺¹ ← Vⱼⁿ − bᵥ(Iⱼⁿ⁺¹ᐟ²−Iⱼ₋₁ⁿ⁺¹ᐟ²)</code></div>
+            </div>
+          </div>
+          <p class="fineprint">「½ステップ」で、Yee格子上の I 更新と V 更新を一つずつ追えます。ボタンを長押しすると連続で進みます。R′・G′が非ゼロのときは台形則の損失係数も適用します。</p>
+        </article>
+
+        <article class="panel cell-panel">
+          <div class="panel-heading">
+            <div>
+              <p class="eyebrow">MICRO ELEMENT</p>
+              <h2>1セル Δx の等価回路</h2>
+            </div>
+          </div>
+          <svg class="cell-svg" viewBox="0 0 560 180" role="img" aria-labelledby="cellTitle cellDesc">
+            <title id="cellTitle">伝送線路の微小セル</title>
+            <desc id="cellDesc">隣接電圧節点の間に直列抵抗とインダクタ、節点から接地へ並列コンダクタンスとキャパシタンスを置く</desc>
+            <circle cx="55" cy="52" r="7"></circle><circle cx="505" cy="52" r="7"></circle>
+            <path d="M62 52 H110 l10 -18 20 36 20 -36 20 36 10 -18 H220"></path>
+            <path d="M220 52 C230 22 250 22 260 52 C270 82 290 82 300 52 C310 22 330 22 340 52 H498"></path>
+            <path d="M280 52 V88 M250 88 H310 M250 102 H310 M280 102 V145"></path>
+            <path d="M405 52 V92 l-14 8 28 13 -28 13 14 8 V145"></path>
+            <path d="M230 145 H455 M265 156 H420 M300 167 H385"></path>
+            <path class="arrow" d="M76 20 H185"></path>
+            <text x="95" y="15">Iⱼ₊½</text><text x="125" y="92">R′Δx</text><text x="255" y="22">L′Δx</text>
+            <text x="228" y="125">C′Δx</text><text x="421" y="122">G′Δx</text>
+            <text x="24" y="83">Vⱼ</text><text x="474" y="83">Vⱼ₊₁</text>
+          </svg>
+          <dl class="micro-values">
+            <div><dt>R′Δx</dt><dd id="microR">—</dd></div>
+            <div><dt>L′Δx</dt><dd id="microL">—</dd></div>
+            <div><dt>G′Δx</dt><dd id="microG">—</dd></div>
+            <div><dt>C′Δx</dt><dd id="microC">—</dd></div>
+          </dl>
+        </article>
+      </section>
+
+      <section class="note panel">
+        <strong>見方：</strong> V⁺・V⁻、I⁺・I⁻は解析解ではなく、FDTDで得た V と I から分離した表示です。<code>V±=(V±Z₀I)/2</code>、<code>I⁺=V⁺/Z₀</code>、<code>I⁻=−V⁻/Z₀</code> なので、<code>V=V⁺+V⁻</code>、<code>I=I⁺+I⁻</code> です。包絡線は、各位置における直近のホールド時間内の最大 <code>|V|</code> です。
+      </section>
+    </div>
+  </main>
+
+  <script type="module" src="./app.mjs"></script>
+</body>
+</html>
