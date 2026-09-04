@@ -221,19 +221,42 @@
               <h2>1セル Δx の等価回路</h2>
             </div>
           </div>
-          <svg class="cell-svg" viewBox="0 0 560 180" role="img" aria-labelledby="cellTitle cellDesc">
+          <svg class="cell-svg" viewBox="0 0 640 240" role="img" aria-labelledby="cellTitle cellDesc">
             <title id="cellTitle">伝送線路の微小セル</title>
-            <desc id="cellDesc">隣接電圧節点の間に直列抵抗とインダクタ、節点から接地へ並列コンダクタンスとキャパシタンスを置く</desc>
-            <circle cx="55" cy="52" r="7"></circle><circle cx="505" cy="52" r="7"></circle>
-            <path d="M62 52 H110 l10 -18 20 36 20 -36 20 36 10 -18 H220"></path>
-            <path d="M220 52 C230 22 250 22 260 52 C270 82 290 82 300 52 C310 22 330 22 340 52 H498"></path>
-            <path d="M280 52 V88 M250 88 H310 M250 102 H310 M280 102 V145"></path>
-            <path d="M405 52 V92 l-14 8 28 13 -28 13 14 8 V145"></path>
-            <path d="M230 145 H455 M265 156 H420 M300 167 H385"></path>
-            <path class="arrow" d="M76 20 H185"></path>
-            <text x="95" y="15">Iⱼ₊½</text><text x="125" y="92">R′Δx</text><text x="255" y="22">L′Δx</text>
-            <text x="228" y="125">C′Δx</text><text x="421" y="122">G′Δx</text>
-            <text x="24" y="83">Vⱼ</text><text x="474" y="83">Vⱼ₊₁</text>
+            <desc id="cellDesc">左の電圧節点から直列抵抗と直列インダクタを通って右の電圧節点へ接続し、右の節点から接地へキャパシタンスとコンダクタンスを並列接続した等価回路</desc>
+            <defs>
+              <marker id="cellCurrentArrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+                <path class="arrowhead" d="M0 0 L10 5 L0 10 Z"></path>
+              </marker>
+            </defs>
+
+            <g class="series-branch">
+              <circle class="node" cx="55" cy="70" r="7"></circle>
+              <path class="wire" d="M62 70 H105"></path>
+              <path class="component" d="M105 70 l9 -18 16 36 16 -36 16 36 16 -36 9 18"></path>
+              <path class="wire" d="M187 70 H220"></path>
+              <path class="component" d="M220 70 C228 38 248 38 256 70 C264 102 284 102 292 70 C300 38 320 38 328 70 C336 102 356 102 364 70"></path>
+              <path class="wire" d="M364 70 H578"></path>
+              <circle class="node" cx="585" cy="70" r="7"></circle>
+            </g>
+
+            <g class="shunt-branch">
+              <circle class="junction" cx="410" cy="70" r="4"></circle>
+              <path class="wire" d="M410 70 V122 M382 122 H438 M382 138 H438 M410 138 V190"></path>
+              <path class="wire" d="M500 70 V105"></path>
+              <path class="component" d="M500 105 l-16 9 32 16 -32 16 32 16 -16 9"></path>
+              <path class="wire" d="M500 171 V190 M410 190 H500"></path>
+              <path class="ground" d="M455 190 V204 M418 204 H492 M429 216 H481 M441 228 H469"></path>
+            </g>
+
+            <path class="current-arrow" d="M95 25 H345" marker-end="url(#cellCurrentArrow)"></path>
+            <text class="current-label" x="220" y="16" text-anchor="middle">I<tspan dy="5" font-size="12">j+½</tspan></text>
+            <text class="value-label" x="146" y="118" text-anchor="middle">R′Δx</text>
+            <text class="value-label" x="292" y="118" text-anchor="middle">L′Δx</text>
+            <text class="value-label" x="368" y="159" text-anchor="end">C′Δx</text>
+            <text class="value-label" x="530" y="143">G′Δx</text>
+            <text class="node-label" x="55" y="108" text-anchor="middle">V<tspan dy="5" font-size="12">j</tspan></text>
+            <text class="node-label" x="585" y="108" text-anchor="middle">V<tspan dy="5" font-size="12">j+1</tspan></text>
           </svg>
           <dl class="micro-values">
             <div><dt>R′Δx</dt><dd id="microR">—</dd></div>

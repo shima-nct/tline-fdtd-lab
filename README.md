@@ -21,6 +21,7 @@
 - `dist/app.mjs`: 操作・描画処理
 - `dist/index.html`: 画面
 - `dist/styles.css`: スタイル
+- `assets/cell-equivalent-circuit.drawio`: 微小セル等価回路の編集用原本
 - `tests/fdtd-core.test.mjs`: 数値試験
 
 ## ローカル実行

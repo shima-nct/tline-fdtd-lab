@@ -155,11 +155,23 @@ canvas { display: block; width: 100%; height: 245px; border-radius: 5px; backgro
 .note strong { color: var(--text); }
 .note code { color: var(--cyan); }
 
-.cell-svg { width: 100%; height: auto; margin-top: 8px; }
-.cell-svg path, .cell-svg circle { fill: none; stroke: #a9bdca; stroke-width: 3; stroke-linecap: round; stroke-linejoin: round; }
-.cell-svg circle { fill: var(--cyan); stroke: var(--cyan); }
+.cell-svg { display: block; width: 100%; height: auto; margin-top: 8px; overflow: visible; }
+.cell-svg .wire, .cell-svg .component, .cell-svg .ground, .cell-svg .current-arrow {
+  fill: none;
+  stroke: #a9bdca;
+  stroke-width: 3;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  vector-effect: non-scaling-stroke;
+}
+.cell-svg .node { fill: var(--cyan); stroke: var(--cyan); stroke-width: 2; vector-effect: non-scaling-stroke; }
+.cell-svg .junction { fill: #a9bdca; stroke: none; }
 .cell-svg text { fill: #b8c9d6; font: 16px ui-monospace, monospace; }
-.cell-svg .arrow { stroke: var(--yellow); marker-end: none; }
+.cell-svg .value-label { fill: var(--text); font-weight: 650; }
+.cell-svg .node-label { fill: var(--cyan); }
+.cell-svg .current-arrow { stroke: var(--yellow); stroke-width: 2.5; }
+.cell-svg .arrowhead { fill: var(--yellow); stroke: none; }
+.cell-svg .current-label { fill: var(--yellow); font-weight: 700; }
 .micro-values { display: grid; grid-template-columns: repeat(4, 1fr); gap: 6px; margin: 0; }
 .micro-values div { border: 1px solid var(--line); border-radius: 6px; background: #0c1319; padding: 7px; }
 .micro-values dt { color: var(--muted); font-size: .68rem; }
